@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+body {
+  background-color: black;
+  font-family: 'Arial', sans-serif;
+  color:#f0f0f0;
+}
+@font-face {
+  font-family: font1;
+  src: url(../fonts/Lausanne-300.woff2);
+}
+@font-face {
+  font-family: font2;
+  src: url(../fonts/Lausanne-500\ \(2\).woff2);
+}
+/* Sabhi Links aur NavLinks ke liye */
+a, .nav-link {
+  cursor: pointer !important;
+}
