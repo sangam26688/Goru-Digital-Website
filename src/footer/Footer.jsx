@@ -218,19 +218,22 @@ const Footer = () => {
 
           {/* Sitemap */}
           <div className="footer-col">
-            <h4 className="text-[#c9a84c] text-xs uppercase tracking-[0.3em] font-bold mb-8">Sitemap</h4>
-            <ul className="space-y-4">
-              {['Home', 'Service', 'Portfolio', 'Product', 'About', 'Contact'].map((item) => (
-                <li key={item}>
-                  <Link to={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
-                    className="text-gray-500 text-sm hover:text-white flex items-center gap-2 group transition-all duration-300">
-                    <span className="w-0 group-hover:w-4 h-[1px] bg-[#c9a84c] transition-all duration-300 inline-block" />
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+  <h4 className="text-[#c9a84c] text-xs uppercase tracking-[0.3em] font-bold mb-8">Sitemap</h4>
+  <ul className="space-y-4">
+    {['Home', 'Service', 'Portfolio', 'Product', 'About', 'Contact'].map((item) => (
+      <li key={item}>
+        {/* Link Logic Fix: Agar 'Home' hai toh '/', baaki sab ke liye unka naam */}
+        <Link 
+          to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+          className="text-gray-500 text-sm hover:text-white flex items-center gap-2 group transition-all duration-300"
+        >
+          <span className="w-0 group-hover:w-4 h-[1px] bg-[#c9a84c] transition-all duration-300 inline-block" />
+          {item}
+        </Link>
+      </li>
+    ))}
+  </ul>
+</div>
 
           {/* Expertise */}
           <div className="footer-col">

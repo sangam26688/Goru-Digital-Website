@@ -61,8 +61,9 @@ const FeaturedWork = () => {
             Featured <span className="italic font-light text-[#c9a84c]">Works</span>
           </h1>
         </div>
-        <button className="flex items-center gap-2 text-gray-400 hover:text-[#c9a84c] transition-colors group text-sm uppercase tracking-widest font-bold">
+        <button className="flex items-center gap-2 text-gray-400 hover:text-[#c9a84c] transition-colors group text-sm uppercase tracking-widest font-bold"><a href="/portfolio">
           View All Projects <ArrowUpRight size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+        </a>
         </button>
       </div>
 
