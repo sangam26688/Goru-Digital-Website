@@ -1,124 +1,130 @@
 import React, { useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Points, PointMaterial } from "@react-three/drei";
+import * as random from "maath/random/dist/maath-random.esm";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 1. Three.js Floating Particles (Luxury Background)
+const Stars = (props) => {
+  const ref = useRef();
+  const [sphere] = React.useState(() => random.inSphere(new Float32Array(3000), { radius: 1.5 }));
+
+  useFrame((state, delta) => {
+    ref.current.rotation.x -= delta / 15;
+    ref.current.rotation.y -= delta / 20;
+  });
+
+  return (
+    <group rotation={[0, 0, Math.PI / 4]}>
+      <Points ref={ref} positions={sphere} stride={3} frustumCulled {...props}>
+        <PointMaterial transparent color="#c9a84c" size={0.003} sizeAttenuation={true} depthWrite={false} />
+      </Points>
+    </group>
+  );
+};
+
 const Experience = () => {
   const containerRef = useRef();
 
   useGSAP(() => {
-    // 1. Numbers Counting Animation
+    // Numbers Counting Animation
     const items = gsap.utils.toArray(".stat-number");
-    
     items.forEach((item) => {
       const targetValue = parseInt(item.getAttribute("data-target"));
-      
       gsap.fromTo(item, 
         { innerText: 0 }, 
         {
           innerText: targetValue,
-          duration: 2,
-          snap: { innerText: 1 }, // Integers mein count karne ke liye
+          duration: 2.5,
+          snap: { innerText: 1 },
           scrollTrigger: {
             trigger: item,
-            start: "top 90%", // Jab 90% screen par aaye tab shuru ho
+            start: "top 90%",
           }
         }
       );
     });
 
-    // 2. Text Reveal Animation (Left side)
-    gsap.from(".exp-text", {
-      x: -50,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.2,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: ".exp-text",
-        start: "top 85%",
-      }
-    });
-
-    // 3. Stats Border Animation (Right side)
-    gsap.from(".stat-box", {
+    // Vertical Border Reveal
+    gsap.from(".stat-border", {
       scaleY: 0,
       transformOrigin: "top",
-      opacity: 0,
       duration: 1.5,
-      stagger: 0.2,
-      ease: "expo.out",
+      stagger: 0.3,
+      ease: "power4.out",
       scrollTrigger: {
         trigger: ".stat-box",
-        start: "top 85%",
+        start: "top 80%",
       }
     });
-
   }, { scope: containerRef });
 
   return (
-    <section ref={containerRef} className="py-20 md:py-32 px-6 md:px-10 bg-[#0d0b08] border-t border-white/5 overflow-hidden">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24 items-center">
+    <section ref={containerRef} className="relative py-24 md:py-40 px-6 md:px-16 bg-[#0a0908] border-t border-white/5 overflow-hidden">
+      
+      {/* Three.js Background Canvas */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+        <Canvas camera={{ position: [0, 0, 1] }}>
+          <Stars />
+        </Canvas>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
         
-        {/* Left Content */}
-        <div className="space-y-6">
-          <h2 className="exp-text text-[#c9a84c] text-[10px] md:text-xs tracking-[0.5em] uppercase font-black">
-            The Experience
-          </h2>
-          <h3 className="exp-text text-white text-4xl md:text-6xl font-serif leading-tight">
-            We don't just take photos, <br className="hidden md:block"/> 
-            we curate <span className="italic text-[#c9a84c] font-light">Emotions</span>.
+        {/* Left Content (Framer Motion) */}
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          viewport={{ once: true }}
+          className="space-y-8"
+        >
+          <div className="inline-block border-b border-[#c9a84c]/30 pb-2">
+            <h2 className="text-[#c9a84c] text-[10px] md:text-xs tracking-[0.6em] uppercase font-black">
+              The Legacy
+            </h2>
+          </div>
+          <h3 className="text-white text-5xl md:text-7xl font-serif leading-[1.1] tracking-tighter">
+            We don't just click, <br /> 
+            we <span className="italic text-[#c9a84c] font-light">immortalize</span>.
           </h3>
-          <p className="exp-text text-gray-500 font-sans leading-relaxed text-base md:text-lg max-w-md">
-            Yamuna Nagar based luxury studio specializing in cinematic wedding films and high-end portraits. 
-            <span className="text-white/80 block mt-4 italic font-serif">"Har shot mein ek kahani hai."</span>
+          <p className="text-gray-500 font-sans leading-relaxed text-lg max-w-md font-light">
+            Yamuna Nagar's premier luxury studio. We capture the whispers, the tears, and the unscripted joy.
+            <span className="text-[#c9a84c]/80 block mt-6 italic font-serif text-xl">"Har shot mein ek kahani hai."</span>
           </p>
-        </div>
+        </motion.div>
 
         {/* Right Stats Grid */}
-        <div className="grid grid-cols-2 gap-6 md:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12">
           
-          {/* Stat 1 */}
-          <div className="stat-box border-l border-[#c9a84c]/50 pl-5 md:pl-8 py-2 md:py-6 group">
-            <h4 className="text-white text-4xl md:text-6xl font-bold mb-2 font-sans group-hover:text-[#c9a84c] transition-colors duration-500">
-              <span className="stat-number" data-target="500">0</span>+
-            </h4>
-            <p className="text-gray-600 uppercase text-[9px] md:text-[10px] tracking-[0.3em] font-bold">
-              Weddings Covered
-            </p>
-          </div>
-
-          {/* Stat 2 */}
-          <div className="stat-box border-l border-[#c9a84c]/50 pl-5 md:pl-8 py-2 md:py-6 group">
-            <h4 className="text-white text-4xl md:text-6xl font-bold mb-2 font-sans group-hover:text-[#c9a84c] transition-colors duration-500">
-              <span className="stat-number" data-target="14">0</span>+
-            </h4>
-            <p className="text-gray-600 uppercase text-[9px] md:text-[10px] tracking-[0.3em] font-bold">
-              Years Experience
-            </p>
-          </div>
-
-          {/* Stat 3 */}
-          <div className="stat-box border-l border-[#c9a84c]/50 pl-5 md:pl-8 py-2 md:py-6 group">
-            <h4 className="text-white text-4xl md:text-6xl font-bold mb-2 font-sans group-hover:text-[#c9a84c] transition-colors duration-500">
-              <span className="stat-number" data-target="100">0</span>%
-            </h4>
-            <p className="text-gray-600 uppercase text-[9px] md:text-[10px] tracking-[0.3em] font-bold">
-              Client Smiles
-            </p>
-          </div>
-
-          {/* Stat 4 */}
-          <div className="stat-box border-l border-[#c9a84c]/50 pl-5 md:pl-8 py-2 md:py-6 group">
-            <h4 className="text-white text-4xl md:text-6xl font-bold mb-2 font-sans group-hover:text-[#c9a84c] transition-colors duration-500">
-              4K
-            </h4>
-            <p className="text-gray-600 uppercase text-[9px] md:text-[10px] tracking-[0.3em] font-bold">
-              Cinematic Gear
-            </p>
-          </div>
+          {[
+            { label: "Weddings Covered", target: "500", suffix: "+" },
+            { label: "Years Experience", target: "14", suffix: "+" },
+            { label: "Client Smiles", target: "100", suffix: "%" },
+            { label: "Cinematic Gear", target: "4", suffix: "K" },
+          ].map((stat, i) => (
+            <motion.div 
+              key={i}
+              whileHover={{ x: 10 }}
+              className="stat-box relative pl-8 py-6 group"
+            >
+              {/* GSAP Animated Border */}
+              <div className="stat-border absolute left-0 top-0 w-[1px] h-full bg-gradient-to-b from-[#c9a84c] to-transparent opacity-50" />
+              
+              <h4 className="text-white text-5xl md:text-6xl font-bold mb-3 font-sans transition-colors duration-500 group-hover:text-[#c9a84c]">
+                {stat.target === "4" ? "4" : <span className="stat-number" data-target={stat.target}>0</span>}
+                {stat.suffix}
+              </h4>
+              <p className="text-gray-600 uppercase text-[10px] tracking-[0.4em] font-bold">
+                {stat.label}
+              </p>
+            </motion.div>
+          ))}
 
         </div>
       </div>

@@ -1,28 +1,51 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Camera, Heart, Focus, Award, ArrowDown } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Points, PointMaterial } from "@react-three/drei";
+import * as random from "maath/random/dist/maath-random.esm";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 1. Optimized Three.js Particles
+const BackgroundStars = () => {
+  const ref = useRef();
+  const sphere = useMemo(() => random.inSphere(new Float32Array(3000), { radius: 1.5 }), []);
+  
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.x -= delta / 20;
+      ref.current.rotation.y -= delta / 25;
+    }
+  });
+
+  return (
+    <group rotation={[0, 0, Math.PI / 4]}>
+      <Points ref={ref} positions={sphere} stride={3} frustumCulled>
+        <PointMaterial transparent color="#c9871a" size={0.004} sizeAttenuation={true} depthWrite={false} />
+      </Points>
+    </group>
+  );
+};
+
 const About = () => {
   const containerRef = useRef(null);
-  const section1Ref = useRef(null);
-  const section2Ref = useRef(null);
-  const imageRef = useRef(null);
 
   useGSAP(() => {
-    // 1. Heading Animation (Fade in & Scale)
+    // Reveal Heading
     gsap.from(".about-title", {
-      y: 100,
+      y: 60,
       opacity: 0,
       duration: 1.5,
       ease: "power4.out",
     });
 
-    // 2. Image Parallax Effect
+    // Responsive Parallax
     gsap.to(".parallax-img", {
-      yPercent: -20,
+      yPercent: -10,
       ease: "none",
       scrollTrigger: {
         trigger: ".parallax-container",
@@ -32,130 +55,139 @@ const About = () => {
       },
     });
 
-    // 3. Staggered Text Reveal (Story Section)
-    gsap.from(".story-text p", {
-      y: 50,
+    // Story Text Entrance
+    gsap.from(".story-anim", {
+      y: 40,
       opacity: 0,
+      stagger: 0.15,
       duration: 1,
-      stagger: 0.3,
-      scrollTrigger: {
-        trigger: ".story-text",
-        start: "top 80%",
-      },
-    });
-
-    // 4. Horizontal Scroll or Scale for Features
-    const cards = gsap.utils.toArray(".stat-card");
-    gsap.from(cards, {
-      scale: 0.8,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.2,
-      scrollTrigger: {
-        trigger: ".stats-section",
-        start: "top 75%",
-      },
-    });
-
-    // 5. Background Color Change on Scroll
-    gsap.to(".about-page", {
-      backgroundColor: "#1a1712",
       scrollTrigger: {
         trigger: ".story-section",
-        start: "top center",
-        scrub: true,
+        start: "top 80%",
       },
     });
   }, { scope: containerRef });
 
   return (
-    <div ref={containerRef} className="about-page bg-[#0d0b08] text-amber-50 overflow-hidden font-serif">
+    <div ref={containerRef} className="about-page bg-[#0d0b08] text-amber-50 overflow-hidden font-serif relative">
       
-      {/* SECTION 1: HERO */}
-      <section className="h-screen flex flex-col items-center justify-center text-center px-5 relative">
-        <h1 className="about-title text-7xl md:text-[10rem] font-light leading-none tracking-tighter uppercase">
-          Capturing <br /> <span className="text-[#c9871a] italic">Legacy</span>
-        </h1>
-        <p className="mt-10 text-gray-400 font-sans tracking-[0.3em] uppercase text-xs">
+      {/* 3D Decor - Fixed Positioning */}
+      <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
+        <Canvas camera={{ position: [0, 0, 1] }}>
+          <BackgroundStars />
+        </Canvas>
+      </div>
+
+      {/* SECTION 1: HERO - Dynamic Heights */}
+      <section className="min-h-[100svh] flex flex-col items-center justify-center text-center px-6 relative z-10">
+        <motion.h1 
+          initial={{ letterSpacing: "-0.05em" }}
+          whileInView={{ letterSpacing: "0.02em" }}
+          transition={{ duration: 2 }}
+          className="about-title text-5xl sm:text-7xl md:text-8xl lg:text-[11rem] font-light leading-[0.9] tracking-tighter uppercase"
+        >
+          Capturing <br /> <span className="text-[#c9871a] italic font-serif">Legacy</span>
+        </motion.h1>
+        <p className="mt-8 md:mt-12 text-gray-400 font-sans tracking-[0.4em] md:tracking-[0.6em] uppercase text-[9px] md:text-[10px] font-bold">
           Established since 2010 • Yamuna Nagar
         </p>
-        <div className="absolute bottom-10 animate-bounce">
-          <i className="ri-arrow-down-line text-2xl text-[#c9871a]"></i>
+        <div className="absolute bottom-10 animate-bounce opacity-40 hidden sm:block">
+          <ArrowDown size={24} className="text-[#c9871a]" />
         </div>
       </section>
 
-      {/* SECTION 2: PARALLAX IMAGE */}
-      <section className="parallax-container h-[80vh] w-full overflow-hidden relative">
+      {/* SECTION 2: PARALLAX IMAGE - Aspect Ratio Fixed */}
+      <section className="parallax-container h-[60vh] md:h-[90vh] w-full overflow-hidden relative border-y border-white/5">
         <img 
           src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070" 
-          className="parallax-img w-full h-[120%] object-cover grayscale hover:grayscale-0 transition-all duration-700"
+          className="parallax-img w-full h-[120%] object-cover grayscale hover:grayscale-0 transition-all duration-[1.5s]"
           alt="Studio View"
         />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <h2 className="text-4xl md:text-6xl font-light tracking-widest border-y border-white/20 py-4">OUR VISION</h2>
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
+          <motion.h2 
+             initial={{ opacity: 0, scale: 0.95 }}
+             whileInView={{ opacity: 1, scale: 1 }}
+             transition={{ duration: 1 }}
+             className="text-3xl sm:text-5xl md:text-7xl font-light tracking-[0.2em] md:tracking-[0.3em] uppercase border-y border-[#c9871a]/30 py-4 md:py-6 text-center"
+          >
+            Our Vision
+          </motion.h2>
         </div>
       </section>
 
-      {/* SECTION 3: THE STORY */}
-      <section className="story-section min-h-screen py-32 px-10 md:px-32 grid grid-cols-1 md:grid-cols-2 gap-20">
-        <div className="story-text space-y-10">
-          <h3 className="text-[#c9871a] text-sm tracking-[0.5em] uppercase font-sans">The Journey</h3>
-          <p className="text-3xl md:text-5xl leading-tight font-light">
-            Goru Digital Studio is not just about taking photos. It's about <span className="text-white underline decoration-[#c9871a]">freezing time</span>.
+      {/* SECTION 3: THE STORY - Mobile Grid Fix */}
+      <section className="story-section min-h-screen py-20 md:py-40 px-6 sm:px-12 md:px-24 lg:px-32 grid grid-cols-1 lg:grid-cols-2 gap-16 md:gap-24 relative z-10">
+        <div className="space-y-8 md:space-y-12 flex flex-col justify-center">
+          <h3 className="story-anim text-[#c9871a] text-[10px] md:text-xs tracking-[0.5em] uppercase font-sans font-black">The Journey</h3>
+          <p className="story-anim text-3xl sm:text-4xl md:text-6xl leading-[1.1] font-light tracking-tight">
+            Goru Digital is about <span className="text-white italic">freezing time</span> when moments matter.
           </p>
-          <p className="text-gray-400 font-sans leading-relaxed text-lg">
-            Yamuna Nagar se shuru hua ye safar aaj har badi wedding aur event ki jaan ban chuka hai. Humne hazaaron muskurahaton ko apne lens mein utara hai. Hamari team technology aur art ka wo perfect blend use karti hai jo aapki yaadon ko cinematic banati hai.
+          <p className="story-anim text-gray-500 font-sans leading-relaxed text-base md:text-lg font-light max-w-xl">
+            Yamuna Nagar se shuru hua ye safar aaj har badi wedding ki jaan ban chuka hai. Humne hazaaron muskurahaton ko lens mein utara hai. Hum technology aur art ka wo blend use karte hain jo yaadon ko cinematic banati hai.
           </p>
-          <div className="pt-10">
-            <button className="px-10 py-4 border border-[#c9871a] text-[#c9871a] hover:bg-[#c9871a] hover:text-black transition-all duration-500 uppercase text-xs tracking-widest">
+          <div className="story-anim pt-4">
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
+              className="w-full sm:w-auto px-10 md:px-14 py-4 md:py-5 border border-[#c9871a] text-[#c9871a] uppercase text-[9px] md:text-[10px] tracking-[0.4em] font-bold hover:bg-[#c9871a] hover:text-black transition-all"
+            >
               View Our Work
-            </button>
+            </motion.button>
           </div>
         </div>
-        <div className="relative">
-          <div className="w-full h-[600px] bg-[#1a1712] rounded-tl-[100px] overflow-hidden">
-             <img src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=2070" className="w-full h-full object-cover opacity-60" alt="Camera lens" />
+        
+        {/* Responsive Image Card */}
+        <div className="relative group mt-10 lg:mt-0">
+          <div className="w-full h-[450px] sm:h-[600px] md:h-[700px] bg-[#1a1712] rounded-tr-[80px] md:rounded-tr-[120px] rounded-bl-[80px] md:rounded-bl-[120px] overflow-hidden border border-white/5 shadow-2xl">
+              <img src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=2070" className="w-full h-full object-cover opacity-60 group-hover:scale-110 group-hover:opacity-100 transition-all duration-[2s]" alt="Camera lens" />
           </div>
-          <div className="absolute -bottom-10 -left-10 bg-[#c9871a] text-black p-10 hidden md:block">
-            <p className="text-5xl font-bold">14+</p>
-            <p className="text-xs font-sans tracking-widest uppercase font-bold">Years of Experience</p>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: STATS/FEATURES */}
-      <section className="stats-section py-32 bg-black/50 text-center">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 px-10 max-w-7xl mx-auto">
-          <div className="stat-card p-10 border border-white/5 bg-[#12100c]">
-            <i className="ri-camera-3-line text-4xl text-[#c9871a] mb-5 block"></i>
-            <h4 className="text-4xl font-bold mb-2">500+</h4>
-            <p className="text-gray-500 text-xs uppercase tracking-widest">Weddings Shot</p>
-          </div>
-          <div className="stat-card p-10 border border-white/5 bg-[#12100c]">
-            <i className="ri-heart-line text-4xl text-[#c9871a] mb-5 block"></i>
-            <h4 className="text-4xl font-bold mb-2">100%</h4>
-            <p className="text-gray-500 text-xs uppercase tracking-widest">Happy Clients</p>
-          </div>
-          <div className="stat-card p-10 border border-white/5 bg-[#12100c]">
-            <i className="ri-focus-2-line text-4xl text-[#c9871a] mb-5 block"></i>
-            <h4 className="text-4xl font-bold mb-2">4K</h4>
-            <p className="text-gray-500 text-xs uppercase tracking-widest">Cinematic Gear</p>
-          </div>
-          <div className="stat-card p-10 border border-white/5 bg-[#12100c]">
-            <i className="ri-award-line text-4xl text-[#c9871a] mb-5 block"></i>
-            <h4 className="text-4xl font-bold mb-2">Top</h4>
-            <p className="text-gray-500 text-xs uppercase tracking-widest">Studio in HR</p>
-          </div>
+          <motion.div 
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            className="absolute -bottom-6 -left-4 sm:-bottom-10 sm:-left-10 bg-[#c9871a] text-black p-6 sm:p-10 md:p-12 shadow-2xl"
+          >
+            <p className="text-5xl sm:text-7xl font-black tracking-tighter leading-none">14+</p>
+            <p className="text-[8px] sm:text-[10px] font-sans tracking-[0.2em] md:tracking-[0.3em] uppercase font-black opacity-80 mt-2">Years of Experience</p>
+          </motion.div>
         </div>
       </section>
 
-      {/* SECTION 5: FOOTER CALL TO ACTION */}
-      <section className="h-[60vh] flex flex-col items-center justify-center bg-[#c9871a] text-black">
-        <h2 className="text-4xl md:text-6xl font-light text-center mb-10">Ready to write your <br /> story with us?</h2>
-        <a href="/contact" className="bg-black text-white px-12 py-5 rounded-full hover:scale-110 transition-all duration-300 font-sans tracking-widest uppercase text-sm">
+      {/* SECTION 4: STATS - Scrollable/Grid Mix */}
+      <section className="stats-section py-20 md:py-40 bg-black/20 relative z-10 border-t border-white/5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-12 px-4 sm:px-10 max-w-7xl mx-auto">
+          {[
+            { icon: <Camera />, val: "500+", label: "Weddings" },
+            { icon: <Heart />, val: "100%", label: "Smiles" },
+            { icon: <Focus />, val: "4K", label: "Gear" },
+            { icon: <Award />, val: "Top", label: "Studio" }
+          ].map((stat, i) => (
+            <motion.div 
+              key={i}
+              whileHover={{ y: -5 }}
+              className="stat-card p-6 md:p-12 border border-white/5 bg-[#12100c] flex flex-col items-center text-center rounded-sm"
+            >
+              <div className="text-[#c9871a] mb-4 md:mb-8 scale-75 md:scale-100">{stat.icon}</div>
+              <h4 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 tracking-tighter">{stat.val}</h4>
+              <p className="text-gray-600 text-[8px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.4em] font-bold">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 5: CTA - Responsive Text */}
+      <section className="py-24 md:h-[70vh] flex flex-col items-center justify-center bg-[#c9871a] text-black relative z-10 px-6">
+        <h2 className="text-4xl sm:text-6xl md:text-8xl font-light text-center mb-10 md:mb-16 tracking-tighter leading-tight">
+          Ready to write your <br /> <span className="italic">story</span> with us?
+        </h2>
+        <motion.a 
+          href="/contact" 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-black text-white px-10 md:px-20 py-4 md:py-6 rounded-full font-sans tracking-[0.2em] md:tracking-[0.4em] uppercase text-[10px] md:text-xs font-black shadow-2xl text-center"
+        >
           Let's Talk
-        </a>
+        </motion.a>
       </section>
+      
     </div>
   );
 };
